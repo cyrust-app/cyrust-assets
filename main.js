@@ -1,103 +1,84 @@
-/* 
- * CyrustLabs Main JS - Clean Version
- * Berisi utilitas UI tanpa skrip pelacak/lisensi.
+/* * CyrustLabs Main JS - Clean & Global Version
+ * Fixes "is not a function" error for gpAPP.js and other plugins
  */
 
 (function(window, document) {
     "use strict";
 
-    // --- [ 1. Objek Utilitas Utama: xAR ] ---
-    // Menggantikan fungsi window.xAR agar fitur UI tetap jalan
+    // Fungsi dasar untuk memastikan elemen yang diklik/dipilih valid
+    const cAel = (t) => {
+        return typeof t === "string" ? document.querySelector(t) : (t instanceof Node ? t : null);
+    };
+
+    // Kumpulan Utilitas Utama (Tanpa Lisensi/Tracker)
     const utils = {
-        // Selektor Dasar
-        geId: (t) => document.getElementById(t),
-        gCls: (t) => document.getElementsByClassName(t),
-        qSel: (t) => document.querySelector(t),
-        qSell: (t) => document.querySelectorAll(t),
-
-        // Manipulasi Class
-        aCls: (t, ...e) => {
-            const el = typeof t === "string" ? document.querySelector(t) : t;
-            if (el) el.classList.add(...e);
-        },
-        rCls: (t, ...e) => {
-            const el = typeof t === "string" ? document.querySelector(t) : t;
-            if (el) el.classList.remove(...e);
-        },
-        cCls: (t, e) => {
-            const el = typeof t === "string" ? document.querySelector(t) : t;
-            return el ? el.classList.contains(e) : false;
-        },
-
+        geId: (id) => document.getElementById(id),
+        gCls: (cls) => document.getElementsByClassName(cls),
+        qSel: (sel) => document.querySelector(sel),
+        qSell: (sel) => document.querySelectorAll(sel),
+        
+        // Manipulasi Class (Ini yang dicari oleh gpAPP.js)
+        aCls: (t, ...e) => { const el = cAel(t); if (el && e.length > 0) el.classList.add(...e); return el; },
+        rCls: (t, ...e) => { const el = cAel(t); if (el && e.length > 0) el.classList.remove(...e); return el; },
+        cCls: (t, e) => { const el = cAel(t); return el ? el.classList.contains(e) : false; },
+        
         // Manipulasi Atribut
-        sAttr: (t, e, r) => {
-            const el = typeof t === "string" ? document.querySelector(t) : t;
-            if (el) el.setAttribute(e, r);
+        sAttr: (t, e, r) => { const el = cAel(t); if (el && e) el.setAttribute(e, r); return el; },
+        gAttr: (t, e) => { const el = cAel(t); return el && e ? el.getAttribute(e) : null; },
+        rAttr: (t, ...e) => { const el = cAel(t); if (el && e.length > 0) e.forEach(attr => el.removeAttribute(attr)); return el; },
+        
+        // Manipulasi Data (Dataset)
+        sAtd: (t, e, n) => { const el = cAel(t); if (el && e) el.dataset[e] = n; return el; },
+        gAtd: (t, e) => { const el = cAel(t); return el && e ? el.dataset[e] : null; },
+        rAtd: (t, ...e) => { const el = cAel(t); if (el && e.length > 0) e.forEach(attr => delete el.dataset[attr]); return el; },
+        
+        // Pemuat File Eksternal (CSS/JS)
+        aCss: (css, id) => { 
+            if (!css) return null; 
+            const style = document.createElement("style"); 
+            if (id) style.id = id; 
+            style.textContent = css; 
+            document.head.appendChild(style); 
         },
-        gAttr: (t, e) => {
-            const el = typeof t === "string" ? document.querySelector(t) : t;
-            return el ? el.getAttribute(e) : null;
+        ldJs: (t) => { 
+            if (!t || !t.url) return null; 
+            const script = document.createElement("script"); 
+            script.src = t.url; 
+            script.async = t.async !== false; 
+            if (t.id) script.id = t.id; 
+            if (t.sc) script.onload = t.sc; 
+            if (t.er) script.onerror = t.er; 
+            document.body.appendChild(script); 
         },
-
-        // Pemuat Aset (CSS & JS secara dinamis)
-        aCss: (css, id) => {
-            const style = document.createElement("style");
-            if (id) style.id = id;
-            style.textContent = css;
-            document.head.appendChild(style);
-        },
-        ldJs: (t) => {
-            if (!t || !t.url) return;
-            const script = document.createElement("script");
-            script.src = t.url;
-            script.async = t.async !== false;
-            if (t.id) script.id = t.id;
-            if (t.sc) script.onload = t.sc;
-            if (t.er) script.onerror = t.er;
-            document.body.appendChild(script);
-        },
-
-        // Utilitas Tambahan
+        
+        // Format JSON
         jOs: (t) => JSON.stringify(t),
         jOp: (t) => JSON.parse(t),
         
-        // Formatter Mata Uang (Sesuai fungsi xCur yang kita bedah)
-        xCur: {
-            IDR: (val) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(val),
-            USD: (val) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0 }).format(val)
-        }
+        // Pengganti Fitur Notifikasi APMODY agar tidak error
+        toastNotif: (msg) => { console.log("Cyrust Notif:", msg); },
+        fixedNotif: (msg) => { console.log("Cyrust Notif:", msg); }
     };
 
-    // Ekspos ke global window
+    // --- EKSPOS KE GLOBAL WINDOW ---
+    // Ini langkah wajib agar gpAPP.js bisa membaca semua fungsi di atas
+    for (const key in utils) {
+        window[key] = utils[key];
+    }
+    
+    // Cadangan jika ada skrip yang memanggil objek xAR secara langsung
     window.xAR = utils;
     
-    // --- [ 2. Fungsi Inisialisasi UI ] ---
-    // Tambahkan logika interaksi tema di sini (misal: Dark Mode)
-    const initCyrustUI = () => {
-        console.log("CyrustLabs UI Initialized.");
-        
-        // Contoh: Menangani klik menu mobile
-        const menuBtn = utils.geId('menu-toggler');
-        if (menuBtn) {
-            menuBtn.addEventListener('click', () => {
-                utils.rCls('#sidebar', 'hidden');
-            });
-        }
+    // Format Mata Uang (Dibutuhkan untuk beberapa widget)
+    window.xCur = {
+        _f: (t, e, o, i) => {
+            if (!isNaN(Number(o))) {
+                return Number(o).toLocaleString(t, { style: "currency", currency: e, minimumFractionDigits: i != null ? i : 0 });
+            }
+            return "";
+        },
+        USD: function(t, e) { return this._f("en-US", "USD", t, e); },
+        IDR: function(t, e) { return this._f("id-ID", "IDR", t, e); }
     };
 
-    // Jalankan saat DOM Ready
-    if (document.readyState === "loading") {
-        document.addEventListener("DOMContentLoaded", initCyrustUI);
-    } else {
-        initCyrustUI();
-    }
-
 })(window, document);
-
-/* 
- * --- [ CATATAN PENTING ] ---
- * 1. Saya telah membuang blok "IIFE" yang berisi perhitungan matematika obfuscation.
- * 2. Saya telah menghapus fungsi sendMessage ke Bot Telegram.
- * 3. Saya menghapus mekanisme "document.body.remove()" agar blog tidak blank.
- * 4. Pastikan memanggil file ini di template Blogger kamu tanpa variabel 'mn_js'.
- */
