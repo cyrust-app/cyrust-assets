@@ -1,34 +1,31 @@
-/* * CyrustLabs Engine - Clean & Global
- * Penghubung utama untuk gpAPP.js dan utilitas UI lainnya.
- * Pastikan tidak ada karakter aneh atau "catch" yang tersisa di luar kode ini.
- */
-
 (function(window, document) {
     "use strict";
 
     // Validasi Elemen
     const cAel = (t) => typeof t === "string" ? document.querySelector(t) : (t instanceof Node ? t : null);
 
-    // --- DEKLARASI GLOBAL UNTUK gpAPP.js ---
-    // Fungsi ini wajib ada agar Dark Mode, Menu, dan Slider bisa diklik
-    
+    // --- DEKLARASI GLOBAL UNTUK FITUR TEMA ---
     window.geId = (id) => document.getElementById(id);
     window.gCls = (cls) => document.getElementsByClassName(cls);
     window.qSel = (sel) => document.querySelector(sel);
     window.qSell = (sel) => document.querySelectorAll(sel);
     
+    // Fungsi Manipulasi Class (Ini yang error "is not a function" tadi)
     window.aCls = (t, ...e) => { const el = cAel(t); if (el && e.length > 0) el.classList.add(...e); return el; };
     window.rCls = (t, ...e) => { const el = cAel(t); if (el && e.length > 0) el.classList.remove(...e); return el; };
     window.cCls = (t, e) => { const el = cAel(t); return el ? el.classList.contains(e) : false; };
     
+    // Fungsi Atribut
     window.sAttr = (t, e, r) => { const el = cAel(t); if (el && e) el.setAttribute(e, r); return el; };
     window.gAttr = (t, e) => { const el = cAel(t); return el && e ? el.getAttribute(e) : null; };
     window.rAttr = (t, ...e) => { const el = cAel(t); if (el && e.length > 0) e.forEach(attr => el.removeAttribute(attr)); return el; };
     
+    // Fungsi Dataset
     window.sAtd = (t, e, n) => { const el = cAel(t); if (el && e) el.dataset[e] = n; return el; };
     window.gAtd = (t, e) => { const el = cAel(t); return el && e ? el.dataset[e] : null; };
     window.rAtd = (t, ...e) => { const el = cAel(t); if (el && e.length > 0) e.forEach(attr => delete el.dataset[attr]); return el; };
     
+    // Injeksi CSS / JS
     window.aCss = (css, id) => { 
         if (!css) return null; 
         const style = document.createElement("style"); 
@@ -50,10 +47,11 @@
     window.jOs = (t) => JSON.stringify(t);
     window.jOp = (t) => JSON.parse(t);
     
+    // Notifikasi
     window.toastNotif = (msg) => { console.log("Cyrust Notif:", msg); };
     window.fixedNotif = (msg) => { console.log("Cyrust Notif:", msg); };
 
-    // Format Harga / Uang (Dibutuhkan untuk widget tertentu)
+    // Format Harga
     window.xCur = {
         _f: (t, e, o, i) => {
             if (!isNaN(Number(o))) {
